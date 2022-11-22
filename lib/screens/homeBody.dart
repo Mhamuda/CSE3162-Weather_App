@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../api/call_api.dart';
+import 'package:weather/weather.dart';
 
 class HomeBody extends StatefulWidget {
   const HomeBody({Key? key}) : super(key: key);
@@ -20,16 +21,16 @@ class _HomeBodyState extends State<HomeBody> {
   var tempData = "Loading...";
   var location = "Current Location";
   var search = "Search";
-  var humidity = "Humidity";  //Adrota
+  var humidity = "Humidity"; //Adrota
   var pressure = "Pressure";
   // var sunrise = "sunrise";
   // var sunset = "sunset";
-  var icon = "04d";
-  var main = "Type";
+  var icon = "//cdn.weatherapi.com/weather/64x64/night/296.png";
+  var text = "type";
   var description = "Description";
   var visibility = "Visibility";
-  var longitude = "Longitude";  //draghimangso
-  var latitude = "Latitude";  //Okkhangso
+  var longitude = "Longitude"; //draghimangso
+  var latitude = "Latitude"; //Okkhangso
 
   TextEditingController textEditingController = TextEditingController();
 
@@ -38,72 +39,63 @@ class _HomeBodyState extends State<HomeBody> {
 
     Map<String, dynamic> response =
         await machine.getDataWithCity(textEditingController.text);
-    if (response["cod"] == 200) {
-      double tempDegree = response['main']['temp'] - 273;
-      double tempFarenheit = tempDegree * 9 / 5 + 32;
-      double feelsLikeDegree = response['main']['feels_like'] - 273;
-      double feelsLikeFarenheit = feelsLikeDegree * 9 / 5 + 32;
-      double visibility1 = response['visibility'] / 1000;
 
-
-      setState(() {
-        location = 'City Name: ' + response["name"] + "," + response["sys"]["country"];
-        tempData = 'Temperature : ' + tempDegree.toStringAsPrecision(2) + degree + " / " + tempFarenheit.toStringAsPrecision(2) + fahrenheit;
-        feelsLike = 'Feels Like : ' + feelsLikeDegree.toStringAsPrecision(2) + degree + " / " + feelsLikeFarenheit.toStringAsPrecision(2) + fahrenheit;
-        humidity = 'Humidity : ' + response['main']['humidity'].toString() + '%';
-        pressure = 'Pressure : ' + response['main']['pressure'].toString() + 'mBar';
-        icon = response['weather'][0]['icon'];
-        main = response['weather'][0]['main'];
-        description = response['weather'][0]['description'];
-        visibility = 'Visibility : ' + visibility1.toStringAsPrecision(2) + 'km';
-        // sunrise = 'Sunrise : ' + response['sys']['sunrise'];
-        // sunset = 'Sunset : ' +response['sys']['sunset'];
-        latitude = 'Latitude : ' + response['coord']['lat'].toStringAsFixed(4);
-        longitude = 'Longitude : ' + response['coord']['lon'].toStringAsFixed(4);
-
-
-      });
-    } else {
-      Fluttertoast.showToast(
-          msg: response["message"],
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.black,
-          textColor: Colors.white,
-          fontSize: 16.0);
-    }
+    setState(() {
+      location = 'City Name: ' +
+          response['location']['name'] +
+          "," +
+          response['location']['country'];
+      tempData =
+          'Temperature : ' + response['current']['temp_c'].toString() + degree;
+      feelsLike = 'Feels Like : ' +
+          response['current']["feelslike_c"].toString() +
+          degree;
+      humidity =
+          'Humidity : ' + response['current']['humidity'].toString() + '%';
+      pressure = 'Pressure : ' +
+          response['current']['pressure_mb'].toString() +
+          'mBar';
+      icon = response['current']['condition']['icon'];
+      text = response['current']['condition']['text'];
+      visibility =
+          'Visibility : ' + response['current']['vis_km'].toString() + 'km';
+      // sunrise = 'Sunrise : ' + response['sys']['sunrise'];
+      // sunset = 'Sunset : ' +response['sys']['sunset'];
+      latitude = 'Latitude : ' + response['location']['lat'].toStringAsFixed(4);
+      longitude =
+          'Longitude : ' + response['location']['lon'].toStringAsFixed(4);
+    });
   }
 
   void loadData() async {
     var serviceStatus = await Geolocator.isLocationServiceEnabled();
-    if (kDebugMode) { //kDebugmode = A constant that is true if the application was compiled in debug mode.
-      print(serviceStatus);
-    }
-
-    LocationPermission locationPermission = await Geolocator.checkPermission();
-
-    if (locationPermission == LocationPermission.denied) {
-      locationPermission = await Geolocator.requestPermission();
-
-      if (locationPermission == LocationPermission.denied) {
-        if (kDebugMode) {
-          print("permission denied");
-        }
-      } else if (locationPermission == LocationPermission.deniedForever) {
-        if (kDebugMode) {
-          print("forget it. it's reject forever.");
-        }
-      } else {
-        if (kDebugMode) {
-          print("permission given");
-        }
-      }
-    } else {
-      if (kDebugMode) {
-        print("Permission Hold");
-      }
-    }
+    // if (kDebugMode) { //kDebugmode = A constant that is true if the application was compiled in debug mode.
+    //   print(serviceStatus);
+    // }
+    //
+    // LocationPermission locationPermission = await Geolocator.checkPermission();
+    //
+    // if (locationPermission == LocationPermission.denied) {
+    //   locationPermission = await Geolocator.requestPermission();
+    //
+    //   if (locationPermission == LocationPermission.denied) {
+    //     if (kDebugMode) {
+    //       print("permission denied");
+    //     }
+    //   } else if (locationPermission == LocationPermission.deniedForever) {
+    //     if (kDebugMode) {
+    //       print("forget it. it's reject forever.");
+    //     }
+    //   } else {
+    //     if (kDebugMode) {
+    //       print("permission given");
+    //     }
+    //   }
+    // } else {
+    //   if (kDebugMode) {
+    //     print("Permission Hold");
+    //   }
+    // }
 
     Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
@@ -113,38 +105,32 @@ class _HomeBodyState extends State<HomeBody> {
     var machine = WeatherInformationMachine();
     var response = await machine.getDataWithLonglat(longitude, latitude);
 
-    if (response["cod"] == 200) {
-      double tempDegree = response['main']['temp'] - 273;
-      double tempFarenheit = tempDegree * 9 / 5 + 32;
-      double feelsLikeDegree = response['main']['feels_like'] - 273;
-      double feelsLikeFarenheit = feelsLikeDegree * 9 / 5 + 32;
-      double visibility1 = response['visibility'] / 1000;
+    setState(() {
+      location = 'Currrently in ' +
+          response['location']['name'] +
+          "," +
+          response['location']['country'];
+      tempData =
+          'Temperature : ' + response['current']['temp_c'].toString() + degree;
+      feelsLike = 'Feels Like : ' +
+          response['current']["feelslike_c"].toString() +
+          degree;
+      humidity =
+          'Humidity : ' + response['current']['humidity'].toString() + '%';
+      pressure = 'Pressure : ' +
+          response['current']['pressure_mb'].toString() +
+          'mBar';
+      icon = response['current']['condition']['icon'];
+      text = response['current']['condition']['text'];
+      visibility =
+          'Visibility : ' + response['current']['vis_km'].toString() + 'km';
+      // sunrise = 'Sunrise : ' + response['sys']['sunrise'];
+      // sunset = 'Sunset : ' +response['sys']['sunset'];
+      latitude = 'Latitude : ' + response['location']['lat'].toStringAsFixed(4);
+      longitude =
+          'Longitude : ' + response['location']['lon'].toStringAsFixed(4);
 
-      setState(() {
-        tempData ='Temperature : ' + tempDegree.toStringAsPrecision(2) + degree + " / " + tempFarenheit.toStringAsPrecision(2) + fahrenheit;
-        location ='Currrently in ' + response["name"];
-        feelsLike = 'Feels Like : ' + feelsLikeDegree.toStringAsPrecision(2) + degree + " / " + feelsLikeFarenheit.toStringAsPrecision(2) + fahrenheit;
-        humidity = 'Humidity : ' + response['main']['humidity'].toString() + '%';
-        pressure = 'Pressure : ' + response['main']['pressure'].toString() + 'mBar';
-        icon = response['weather'][0]['icon'];
-        main = response['weather'][0]['main'];
-        description = response['weather'][0]['description'];
-        visibility = 'Visibility : ' + visibility1.toStringAsPrecision(2) + 'km';
-        // sunrise = 'Sunrise : ' + response['sys']['sunrise'];
-        // sunset = 'Sunset : ' +response['sys']['sunset'];
-        latitude = 'Latitude : ' + response['coord']['lat'].toString();
-        longitude = 'Longitude : ' + response['coord']['lon'].toString();
-      });
-    } else {
-      Fluttertoast.showToast(
-          msg: response["message"],
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.black12,
-          textColor: Colors.white,
-          fontSize: 16.0);
-    }
+    });
   }
 
   final ButtonStyle flatButtonStyle = TextButton.styleFrom(
@@ -175,32 +161,14 @@ class _HomeBodyState extends State<HomeBody> {
 
   @override
   Widget build(BuildContext context) {
-    // Container(
-    //   height: double.infinity,
-    //   width: double.infinity,
-    //   decoration: const BoxDecoration(
-    //     image: DecorationImage(
-    //       image: AssetImage("sa=i&url=https%3A%2F%2Fwww.pinterest.com%2Fpin%2F343469909079571629%2F&psig=AOvVaw0Pms6iDbZOPSKnNveM9478&ust=1668981370852000&source=images&cd=vfe&ved=0CBAQjRxqFwoTCMCJx5-eu_sCFQAAAAAdAAAAABAO"),
-    //       fit: BoxFit.cover,
-    //     ),
-    // ));
-    // var dt=DateFormat("dd MMMM , yy       hh-mm a").format(DateTime.now());
-     return Container(
-        
+    return Container(
         alignment: Alignment.topCenter,
         color: Colors.tealAccent,
-
-
-         child: Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             SizedBox(
-              height: 20,
-            ),
-
-            // Text(formatted(dt),style: TextStyle(fontSize: 20,),),
-            SizedBox(
-              height: 20,
+              height: 10,
             ),
 
             Text(location,
@@ -208,13 +176,23 @@ class _HomeBodyState extends State<HomeBody> {
                     fontSize: 25,
                     fontWeight: FontWeight.bold,
                     fontStyle: FontStyle.normal)),
+            SizedBox(
+              height: 5,
+            ),
+            Text(
+              "Today's Weather Information",
+              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(
+              height: 15,
+            ),
 
             Text(
               tempData.toString(),
               style: const TextStyle(
                 fontWeight: FontWeight.w900,
                 fontStyle: FontStyle.normal,
-                fontSize: 30,
+                fontSize: 20,
               ),
             ),
             SizedBox(
@@ -244,11 +222,9 @@ class _HomeBodyState extends State<HomeBody> {
                       fontSize: 20,
                     ),
                   ),
-
                   SizedBox(
                     width: 30,
                   ),
-
                   Text(
                     longitude,
                     style: const TextStyle(
@@ -260,7 +236,6 @@ class _HomeBodyState extends State<HomeBody> {
                 ],
               ),
             ),
-
 
             SizedBox(
               height: 15,
@@ -298,53 +273,45 @@ class _HomeBodyState extends State<HomeBody> {
                 fontSize: 20,
               ),
             ),
-            // new Image.network('https://openweathermap.org/img/wn/$icon.png',
-            //     height: 100,
-            //     width: 10,
-            //     fit: BoxFit.fitWidth,
-            //     //scale: 1,
-            //     // color: Color.fromARGB(255, 15, 147, 59),
-            //     opacity: const AlwaysStoppedAnimation<double>(0.5)),
-            Image.network(
-                'https://openweathermap.org/img/wn/${icon}@2x.png'),
-            // SizedBox(
-            //   height: 10,
+            SizedBox(
+              height: 15,
+            ),
+            // Image.network("https:" + icon),
+            Text(
+              text,
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                fontStyle: FontStyle.normal,
+                fontSize: 20,
+              ),
+            ),
+            SizedBox(
+              height: 15,
+            ),
+            // Text(
+            //   description,
+            //   style: const TextStyle(
+            //     fontWeight: FontWeight.w900,
+            //     fontStyle: FontStyle.normal,
+            //     fontSize: 20,
+            //   ),
             // ),
-            Text(
-              main,
-              style: const TextStyle(
-                fontWeight: FontWeight.w900,
-                fontStyle: FontStyle.normal,
-                fontSize: 20,
-              ),
-            ),
-            SizedBox(
-              height: 5,
-            ),
-            Text(
-              description,
-              style: const TextStyle(
-                fontWeight: FontWeight.w900,
-                fontStyle: FontStyle.normal,
-                fontSize: 20,
-              ),
-            ),
-            SizedBox(
-              height: 5,
-            ),
+            // SizedBox(
+            //   height: 5,
+            // ),
             Center(
               child: Container(
                 alignment: Alignment.center,
                 color: Colors.amberAccent,
                 width: 200,
                 child: TextField(
-                    controller: textEditingController,
-                    textAlign: TextAlign.center,
+                  controller: textEditingController,
+                  textAlign: TextAlign.center,
                   decoration: new InputDecoration(
-                  hintText: "Enter the city name",
-                  labelStyle: TextStyle(color: Colors.black12),
+                    hintText: "Enter the city name",
+                    labelStyle: TextStyle(color: Colors.black12),
+                  ),
                 ),
-              ),
               ),
             ),
             SizedBox(
@@ -364,9 +331,9 @@ class _HomeBodyState extends State<HomeBody> {
             ElevatedButton(
                 style: ancentFlatbuttonStyle,
                 onPressed: loadData,
-                child: const Text("Current Location",
-                  style: TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
+                child: const Text(
+                  "Current Location",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 )),
 
           ],
@@ -379,4 +346,3 @@ class _HomeBodyState extends State<HomeBody> {
 //       timeStamp * 1000);
 //   return date1.toString();
 // }
-

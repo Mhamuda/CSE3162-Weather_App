@@ -5,10 +5,11 @@ import 'package:http/http.dart';
 class WeatherInformationMachine {
   Future<Map<String, dynamic>> getDataWithCity(String cityName) async{
     final queryParameter = {
+
+      "key" : "75d78adb3c384c8995f33751222011",
       "q" : cityName,
-      "appid" : "54fe4944cbf6baff2c3500adeca99185"
     };
-    final uri = Uri.https("api.openweathermap.org", "/data/2.5/weather",queryParameter);
+    final uri = Uri.https("api.weatherapi.com", "/v1/current.json",queryParameter);
     final response = await get(uri);
     final data = jsonDecode(response.body);
     if (kDebugMode) {
@@ -24,13 +25,12 @@ class WeatherInformationMachine {
     }
 
     final queryParameter = {
-      "lon": lon,
-      "lat": lat,
-      "appid": "54fe4944cbf6baff2c3500adeca99185"
+    "key": "75d78adb3c384c8995f33751222011",
+    "q": lon + "," + lat,
+
     };
 
-    final uri = Uri.https(
-        "api.openweathermap.org", "/data/2.5/weather", queryParameter);
+    final uri = Uri.https("api.weatherapi.com", "/v1/current.json",queryParameter);
     final response = await get(uri);
     final data = jsonDecode(response.body) as Map<String, dynamic>;
 
